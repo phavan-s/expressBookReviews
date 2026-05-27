@@ -1,19 +1,33 @@
-const axios = require("axios");
-const express = require("express");
+const express=require('express');
+const axios=require("axios");
+const books=require("./booksdb.js");
 
-const public_users = express.Router();
+let users=[];
 
-const books = require("../booksdb");
+const public_users=express.Router();
 
-const users = [];
+function isValid(username){
 
+return users.some(
+user=>user.username===username
+);
 
-// ======================
-// Task 1
-// Get all books
-// ======================
+}
 
-public_users.get("/", function(req,res){
+function authenticatedUser(
+username,
+password
+){
+
+return users.some(
+user=>
+user.username===username &&
+user.password===password
+);
+
+}
+
+public_users.get('/',function(req,res){
 
 return res.send(
 JSON.stringify(
@@ -25,18 +39,11 @@ null,
 
 });
 
-
-// ======================
-// Task 2
-// Get by ISBN
-// ======================
-
 public_users.get(
-"/isbn/:isbn",
+'/isbn/:isbn',
 function(req,res){
 
-const isbn=
-req.params.isbn;
+const isbn=req.params.isbn;
 
 return res.send(
 JSON.stringify(
@@ -48,139 +55,93 @@ null,
 
 });
 
-
-// ======================
-// Task 3
-// Get by Author
-// ======================
-
 public_users.get(
-"/author/:author",
+'/author/:author',
 function(req,res){
 
 const author=
 req.params.author;
 
-let filteredBooks={};
+let filtered={};
 
-Object.keys(books)
-.forEach(key=>{
+Object.keys(
+books
+).forEach(key=>{
 
 if(
-
 books[key]
 .author
 .toLowerCase()
-
 ===
-
 author
 .toLowerCase()
-
 ){
 
-filteredBooks[key]
-=
-books[key];
+filtered[key]=books[key];
 
 }
 
 });
 
 return res.send(
-
 JSON.stringify(
-filteredBooks,
+filtered,
 null,
 4
 )
-
 );
 
 });
 
-
-// ======================
-// Task 4
-// Get by Title
-// ======================
-
 public_users.get(
-"/title/:title",
+'/title/:title',
 function(req,res){
 
 const title=
 req.params.title;
 
-let filteredBooks={};
+let filtered={};
 
-Object.keys(books)
-.forEach(key=>{
+Object.keys(
+books
+).forEach(key=>{
 
 if(
-
 books[key]
 .title
 .toLowerCase()
-
 ===
-
 title
 .toLowerCase()
-
 ){
 
-filteredBooks[key]
-=
-books[key];
+filtered[key]=books[key];
 
 }
 
 });
 
 return res.send(
-
 JSON.stringify(
-filteredBooks,
+filtered,
 null,
 4
 )
-
 );
 
 });
-
-
-// ======================
-// Task 5
-// Get Reviews
-// ======================
 
 public_users.get(
-"/review/:isbn",
+'/review/:isbn',
 function(req,res){
 
-const isbn=
-req.params.isbn;
-
 return res.send(
-
-JSON.stringify(
-books[isbn]
-.reviews,
-null,
-4
-)
-
+books[
+req.params.isbn
+].reviews
 );
 
 });
-
-
-// ======================
-// Task 6
-// Register User
-// ======================
 
 public_users.post(
 "/register",
@@ -197,227 +158,61 @@ if(
 !password
 ){
 
-return res.status(400)
+return res.status(404)
 .json({
-
 message:
-"Username and password required"
-
+"Missing username/password"
 });
 
 }
 
-let exists=
-users.some(
-
-user=>
-
-user.username===
+if(
+isValid(
 username
-
-);
-
-if(exists){
+)
+){
 
 return res.status(409)
 .json({
-
 message:
-"User already exists"
-
+"User exists"
 });
 
 }
 
 users.push({
-
 username,
 password
-
 });
 
-return res.json({
-
+return res.status(200)
+.json({
 message:
 "User registered"
-
 });
 
 });
-
-
-// ======================
-// Task 10
-// Get all books
-// Async/Await
-// ======================
 
 public_users.get(
 "/async/books",
-async function(req,res){
-
-try{
+async(req,res)=>{
 
 const response=
 await axios.get(
 "http://localhost:5000/"
 );
 
-return res.send(
+res.send(
 response.data
 );
 
-}
-
-catch(error){
-
-return res.status(500)
-.json({
-
-message:
-"Error fetching books"
-
 });
 
-}
-
-});
-
-
-
-// ======================
-// Task 11
-// Get by ISBN
-// Promise
-// ======================
-
-public_users.get(
-"/async/isbn/:isbn",
-function(req,res){
-
-const isbn=
-req.params.isbn;
-
-axios.get(
-`http://localhost:5000/isbn/${isbn}`
-)
-
-.then(response=>{
-
-return res.send(
-response.data
-);
-
-})
-
-.catch(error=>{
-
-return res.status(500)
-.json({
-
-message:
-"Error retrieving ISBN"
-
-});
-
-});
-
-});
-
-
-
-// ======================
-// Task 12
-// Get by Author
-// Async/Await
-// ======================
-
-public_users.get(
-"/async/author/:author",
-async function(req,res){
-
-const author=
-req.params.author;
-
-try{
-
-const response=
-await axios.get(
-
-`http://localhost:5000/author/${author}`
-
-);
-
-return res.send(
-response.data
-);
-
-}
-
-catch(error){
-
-return res.status(500)
-.json({
-
-message:
-"Error retrieving author"
-
-});
-
-}
-
-});
-
-
-
-// ======================
-// Task 13
-// Get by Title
-// Promise
-// ======================
-
-public_users.get(
-"/async/title/:title",
-function(req,res){
-
-const title=
-req.params.title;
-
-axios.get(
-
-`http://localhost:5000/title/${title}`
-
-)
-
-.then(response=>{
-
-return res.send(
-response.data
-);
-
-})
-
-.catch(error=>{
-
-return res.status(500)
-.json({
-
-message:
-"Error retrieving title"
-
-});
-
-});
-
-});
-
-
-// ======================
-// Exports
-// ======================
-
-module.exports.public_users =
+module.exports.general=
 public_users;
 
-module.exports.users =
+module.exports.users=
 users;
+
+module.exports.authenticatedUser=
+authenticatedUser;

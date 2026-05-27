@@ -1,12 +1,8 @@
-const express=require("express");
-
-const jwt=require("jsonwebtoken");
-
-const regd_users=
-express.Router();
+const express=require('express');
+const jwt=require('jsonwebtoken');
 
 const books=
-require("../booksdb");
+require("./booksdb.js");
 
 const general=
 require("./general");
@@ -14,32 +10,10 @@ require("./general");
 const users=
 general.users;
 
+const authenticated=
+express.Router();
 
-function authenticatedUser(
-username,
-password
-){
-
-let validusers=
-users.filter(
-
-user=>
-
-user.username===
-username
-&&
-user.password===
-password
-
-);
-
-return validusers.length>0;
-
-}
-
-
-// Task 7
-regd_users.post(
+authenticated.post(
 "/login",
 (req,res)=>{
 
@@ -50,84 +24,55 @@ const password=
 req.body.password;
 
 if(
-!username ||
-!password
-){
 
-return res.status(404)
-.json({
-message:
-"Username/password missing"
-});
-
-}
-
-if(
-authenticatedUser(
+general.authenticatedUser(
 username,
 password
 )
+
 ){
 
 let accessToken=
 jwt.sign(
-{
-username:
-username
-},
+{username},
 "access",
 {
-expiresIn:
-60*60
+expiresIn:3600
 }
 );
 
-req.session
-.authorization={
-
+req.session.authorization={
 accessToken
-
 };
 
 return res.status(200)
 .json({
-
 message:
 "User logged in successfully"
-
 });
 
 }
 
-return res.status(208)
+return res.status(404)
 .json({
-
 message:
-"Invalid login details"
-
+"Invalid credentials"
 });
 
 });
 
-
-
-// Task 8
-regd_users.put(
+authenticated.put(
 "/auth/review/:isbn",
 (req,res)=>{
 
 const username=
-req.username;
+req.user.username;
 
 const isbn=
 req.params.isbn;
 
 const review=
 req.query.review;
-
-if(
-books[isbn]
-){
 
 books[isbn]
 .reviews[
@@ -136,40 +81,21 @@ username
 
 return res.status(200)
 .json({
-
 message:
-"Review added/updated successfully"
-
-});
-
-}
-
-return res.status(404)
-.json({
-
-message:
-"Book not found"
-
+"Review added"
 });
 
 });
 
-
-
-// Task 9
-regd_users.delete(
+authenticated.delete(
 "/auth/review/:isbn",
 (req,res)=>{
 
 const username=
-req.username;
+req.user.username;
 
 const isbn=
 req.params.isbn;
-
-if(
-books[isbn]
-){
 
 delete books[isbn]
 .reviews[
@@ -178,23 +104,11 @@ username
 
 return res.status(200)
 .json({
-
 message:
-"Review deleted successfully"
-
-});
-
-}
-
-return res.status(404)
-.json({
-
-message:
-"Book not found"
-
+"Review deleted"
 });
 
 });
 
-module.exports=
-regd_users;
+module.exports.authenticated=
+authenticated;
