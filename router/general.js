@@ -188,7 +188,7 @@ password
 return res.status(200)
 .json({
 message:
-"User registered"
+"User successfully registered. Now you can login"
 });
 
 });

@@ -62,7 +62,7 @@ message:
 });
 
 authenticated.put(
-"/auth/review/:isbn",
+"/review/:isbn",
 (req,res)=>{
 
 const username=
@@ -81,14 +81,15 @@ username
 
 return res.status(200)
 .json({
-message:
-"Review added"
-});
 
+reviews:
+books[isbn].reviews
+
+});
 });
 
 authenticated.delete(
-"/auth/review/:isbn",
+"/review/:isbn",
 (req,res)=>{
 
 const username=
@@ -104,8 +105,10 @@ username
 
 return res.status(200)
 .json({
+
 message:
-"Review deleted"
+`Review deleted for ISBN ${isbn}`
+
 });
 
 });
