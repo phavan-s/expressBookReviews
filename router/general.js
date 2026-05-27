@@ -1,10 +1,11 @@
-const express=require('express');
+const express=require("express");
 const axios=require("axios");
-const books=require("./booksdb.js");
 
-let users=[];
+const books=require("./booksdb");
 
 const public_users=express.Router();
+
+let users=[];
 
 function isValid(username){
 
@@ -20,14 +21,23 @@ password
 ){
 
 return users.some(
+
 user=>
+
 user.username===username &&
 user.password===password
+
 );
 
 }
 
-public_users.get('/',function(req,res){
+
+
+// Task 1
+
+public_users.get(
+"/",
+(req,res)=>{
 
 return res.send(
 JSON.stringify(
@@ -39,11 +49,16 @@ null,
 
 });
 
-public_users.get(
-'/isbn/:isbn',
-function(req,res){
 
-const isbn=req.params.isbn;
+
+// Task 2
+
+public_users.get(
+"/isbn/:isbn",
+(req,res)=>{
+
+const isbn=
+req.params.isbn;
 
 return res.send(
 JSON.stringify(
@@ -55,9 +70,14 @@ null,
 
 });
 
+
+
+
+// Task 3
+
 public_users.get(
-'/author/:author',
-function(req,res){
+"/author/:author",
+(req,res)=>{
 
 const author=
 req.params.author;
@@ -69,15 +89,20 @@ books
 ).forEach(key=>{
 
 if(
+
 books[key]
 .author
 .toLowerCase()
+
 ===
+
 author
 .toLowerCase()
+
 ){
 
-filtered[key]=books[key];
+filtered[key]=
+books[key];
 
 }
 
@@ -93,9 +118,14 @@ null,
 
 });
 
+
+
+
+// Task 4
+
 public_users.get(
-'/title/:title',
-function(req,res){
+"/title/:title",
+(req,res)=>{
 
 const title=
 req.params.title;
@@ -107,15 +137,20 @@ books
 ).forEach(key=>{
 
 if(
+
 books[key]
 .title
 .toLowerCase()
+
 ===
+
 title
 .toLowerCase()
+
 ){
 
-filtered[key]=books[key];
+filtered[key]=
+books[key];
 
 }
 
@@ -131,17 +166,36 @@ null,
 
 });
 
+
+
+
+// Task 5
+
 public_users.get(
-'/review/:isbn',
-function(req,res){
+"/review/:isbn",
+(req,res)=>{
 
 return res.send(
+
+JSON.stringify(
+
 books[
 req.params.isbn
-].reviews
+].reviews,
+
+null,
+4
+
+)
+
 );
 
 });
+
+
+
+
+// Task 6
 
 public_users.post(
 "/register",
@@ -160,8 +214,10 @@ if(
 
 return res.status(404)
 .json({
+
 message:
-"Missing username/password"
+"Username or password missing"
+
 });
 
 }
@@ -174,24 +230,35 @@ username
 
 return res.status(409)
 .json({
+
 message:
-"User exists"
+"User already exists"
+
 });
 
 }
 
 users.push({
+
 username,
 password
+
 });
 
 return res.status(200)
 .json({
+
 message:
 "User successfully registered. Now you can login"
+
 });
 
 });
+
+
+
+
+// Task 10
 
 public_users.get(
 "/async/books",
@@ -207,6 +274,79 @@ response.data
 );
 
 });
+
+
+
+
+// Task 11
+
+public_users.get(
+"/async/isbn/:isbn",
+(req,res)=>{
+
+axios.get(
+
+`http://localhost:5000/isbn/${req.params.isbn}`
+
+)
+
+.then(response=>{
+
+res.send(
+response.data
+);
+
+});
+
+});
+
+
+
+
+// Task 12
+
+public_users.get(
+"/async/author/:author",
+async(req,res)=>{
+
+const response=
+await axios.get(
+
+`http://localhost:5000/author/${req.params.author}`
+
+);
+
+res.send(
+response.data
+);
+
+});
+
+
+
+
+// Task 13
+
+public_users.get(
+"/async/title/:title",
+(req,res)=>{
+
+axios.get(
+
+`http://localhost:5000/title/${req.params.title}`
+
+)
+
+.then(response=>{
+
+res.send(
+response.data
+);
+
+});
+
+});
+
 
 module.exports.general=
 public_users;
